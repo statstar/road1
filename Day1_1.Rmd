@@ -1,0 +1,556 @@
+---
+title: "도로교통공단 맞춤형 통계분석 1일차"
+author: "Sanghoo Yoon"
+output: 
+  html_document: 
+    highlight: textmate
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+---
+
+## 강의 소개
+  
+ 도로교통공단 맞춤형 통계분석 1일차
+ 
+ 강의기간 : 2022. 3.14. ~ 2022. 3. 16.
+
+ 주요 강의 내용 
+ 
+> R 기초 
+>
+> dplyr 패키지를 이용한 자료 핸들링
+>
+> 도로사고 데이터 시각화 
+>
+> 사고원인에 따른 교통사고 데이터 분석
+>
+> 분류모형을 이용한 교통사고 위험성 예측
+
+
+## Why R?
+
+$R$ 을 공부해야하는 다양한 이유가 있지만 몇가지 추리면 다음과 같다.
+
+1. $R$ is freely and easily accesible.
+
+    쉽게 접근할 수 있고 자유롭게 이용할 수 있다. 인터넷만 연결되어 있다면 사이트에서 다운 받아 설치하면 언제 어디서든지 사용할 수 있다. 또한 돈을 낼 필요 없는 **공짜(freeware)**이다. 
+
+2. For a software environment with a primarily statical focus.
+
+    통계분석을 목적으로 개발되어 많은 사용자들이 커뮤니티를 통해 정보를 주고 받고 있다. 사회과학, 자연과학, 의약학 등 많은 분야의 연구자들이 본인이 작성한 코드를 공유하며 서로의 지식을 발전시켜 나가고 있다. 
+
+3. $R$ is open source. 
+
+    R의 팩키지를 이용하면서 핵심 알고리즘이 궁금한 경우 소스코드를 다운로드받아 직접 확인할 수 있어 연구에 사용되는 함수의 이해도를 높일 수 있다. 
+
+4. $R$ is reasonably fast in ordinary tasks. 
+
+    다른 통계프로그램인 SPSS, Stats, SAS 등에 비해 계산시간이 빠르다. 심지어 Rcpp 패키지를 통해 C언어를 구현할 수 있어 다른 프로그램에 비해 상대적으로 계산시간을 단축시킬 수 있다. 
+
+5. $R$ is powerful in creating data visualizations. 
+
+    $R$은 자료 (data) 시각화를 쉽게 할 수 있다. 많은 양의 데이터를 시각화 한다면 데이터의 특징을 쉽게 이해하고 분석할 수 있다. R을 이용한 시각화에 관심이 있으면 [https://www.r-graph-gallery.com/](https://www.r-graph-gallery.com/)을 참고바란다. 아래 그림은 시계열 자료의 시각화 예이다. 다른 프로그램과 달리 상호교류가능한 (interactive) 그림을 그릴 수 있다. 
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gganimate)
+library(babynames)
+library(hrbrthemes)
+library(dplyr)
+# Keep only 3 names
+don <- babynames %>%
+  filter(name %in% c("Ashley", "Patricia", "Helen")) %>%
+  filter(sex=="F")
+
+# Plot
+don %>%
+  ggplot( aes(x=year, y=n, group=name, color=name)) +
+    geom_line() +
+    geom_point() +
+    ggtitle("Popularity of American names in the previous 30 years") +
+    theme_ipsum() +
+    ylab("Number of babies born") +
+    transition_reveal(year)
+# 
+# 
+# 
+# # Save at gif:
+# anim_save("287-smooth-animation-with-tweenr.gif")
+```
+
+6. Work in $R$ is mainly command line based. 
+
+    처음 프로그램 이용하는 사람에게 단점처럼 보이나 명령어 방식의 분석은 반복적인 분석을 수행하거나 재분석을 수행할때 엄청난 장점이 된다. 
+
+7. $R$ is not picky about operating systems.
+
+    요즘 프로그램처럼 $R$은 윈도우, 맥, 리눅스와 같이 운영체제에 구애받지 않고 돌아간다.
+    
+8. Finally, $R$ is the entire package from start to finish.
+
+## 프로그램 설치
+
+### 공식 홈페이지에 접속하여 프로그램을 설치한다.
+
+R 프로그램 : http://www.r-project.org
+
+* Download > CRAN을 클릭 후 한국(KOREA) 링크를 클릭한다.
+
+* Download R for windows 클릭 후 base를 선택한다.
+
+* Download R 최신버젼의 R을 다운로드 하여 설치한다. 
+
+* 설치가 완료되면 R 프로그램을 실행하여 정상적으로 실행되는지 확인한다. 
+
+![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgoMJNKg2cbmA356m4v2VELpfQI1t1Z6cZDg&usqp=CAU)
+
+R 편집기 : http://www.rstudio.com
+
+* R Studio 공식 홈페이지에 들어간다.
+
+* Products > RStudio 클릭
+
+* 스크롤 조금 내려서 RStudio Desktop 선택
+
+* 다운 받은 경로에 가서 exe 설치파일 실행
+
+* R Studio 실행 및 설치 확인
+
+```
+ 컴퓨터의 이름이 한글이 경우 package가 설치되지 않는 문제점이 있다.
+ 
+ 이 경우 컴퓨터에 임시 폴더 ex) c:/r_packages 를 만든 후 
+
+ R 프로그램 실행 시 .libPaths("c:/r_packages")를 run 
+
+ 이후 R studio의 오른쪽 패널의 Packages의 Install을 클릭하여 경로가 변경되었는지 확인해보자.
+```
+
+## 들어가기
+
+통계분석(또는 데이터과학)의 프로그래밍은 일반적으로 다음 과정으로 진행된다. 
+
+![](https://d33wubrfki0l68.cloudfront.net/571b056757d68e6df81a3e3853f54d3c76ad6efc/32d37/diagrams/data-science.png)
+
+1. Import : 자료 불러오기 (여러 유형의 자료 file, database, web API 등)
+
+    만약 자료를 불러오지 못한다면, 더이상 통계분석을 할 수 없습니다. 
+    
+2. Tidy : 자료 정리하기 
+    
+    Import로 가져온 자료를 확인 (변수명, 자료의 수, 등)
+    head, tail, dim, str, View, summary 등의 함수를 통해 확인 
+
+3. Transform : 자료 변환
+
+    필요한 변수와 자료 선택, 표준화 등 불러온 raw data를 분석하기 쉽게 재정리
+    
+4. Visualise :  시각화
+    
+    통계 분석 전 결과가 어떻게 나올 것인지 탐색하는 단계
+    
+5. Model : 통계분석
+
+    통계적 가설을 세우고 통계적 가설검정 
+    
+6. Communicate : 소통하기
+
+    R을 통해 분석한 결과를 보고서 또는 시각화하여 의사결정에 활용
+    
+1부터 6까지를 한꺼번에 R을 통해 처리할 수 있고 그 과정이 programming 됩니다. 
+
+## R 기초 : 벡터(vector)
+
+R 의 기본 연산단위는 벡터이며, `x <- c(1, 2, 3)` 은 1,2,3 으로 이루어진 길이 3인 벡터를 x 에 저장한다. 대입연산자는 `=` 와 `<-` 둘 다 가능하지만 함수의 인자로도 쓰이는 `=` 와 구별하기 위해 `<-` 를 권장한다.
+
+```{r}
+math <- c(70,80,90,80,60)
+eng <- c(80,85,90,85,95)
+math+eng 
+math*eng
+math %/% 10
+math %/% 10
+sqrt(math)
+sum(math)
+diff(math)
+mean(math)
+var(math)
+sd(math)
+median(math)
+range(math)
+IQR(math)
+max(math)
+which.min(math)
+length(math)
+```
+
+벡터에서 특정 항목을 골라내기 위해선 `중괄호[]`를 이용하여 **위치** 혹은 **조건문**을 주면 된다.
+
+```{r}
+math[2]
+math[-2]
+math[2:4]
+math[c(1,5,3)]
+math>75
+math[math>75]
+math[math %in% c(80, 90)]
+```
+
+## R 기초 : 조건문(for, if, ifelse)
+
+### if  조건문
+
+>if (test_expression) { 
+> 
+>statement 
+>
+>} 
+
+```{r}
+for(values in 1:10)
+{if (values <= 10)                                
+print(paste(values, "is less than or equal to 10"))
+}
+
+for(values in 1:10)
+{if (values <= 5)                                
+print(paste(values, "is less than or equal to 5")) 
+}
+```
+
+* 한줄로 표현된 경우 {}을 생략해도 괜찮습니다.
+
+### if-else 조건문
+
+* else는 앞의 if문이 참이 아닐때 실행됩니다.
+
+> if (test_expression) { 
+>
+> statement 
+>
+> } else { 
+>
+> statement 
+>
+> } 
+
+```{r}
+x <- -4
+if(x > 0) # 조건을 만족하지 않으므로 else문이 실행됩니다.
+  { print("양수입니다.")
+} else { 
+  print("양수가 아닙니다.")
+}
+```
+
+아래와 같이 사용하면 오류가 발생하고 실행되지 않습니다.
+
+```{r eval=F}
+x <- -4
+if(x > 0) # 조건을 만족하지 않으므로 아래의 문장이 실행되지 않습니다.
+  print("양수입니다.")
+ } else 
+   {print("양수가 아닙니다.")}
+```
+
+하지만 아래와 같이 else 다음에 한줄로 된 코드를 입력하면 문제 없이 실행됩니다. 
+
+```{r}
+x <- -4
+if(x > 0) # 조건을 만족하지 않으므로 아래의 문장이 실행되지 않습니다.
+ { print("양수입니다.")
+ } else print("양수가 아닙니다.")
+```
+
+### if 문에서 else if로 여러 조건을 줄 수 있습니다.
+
+> if ( test_expression1) {
+>
+> statement1
+>
+> } else if ( test_expression2) {
+>
+> statement2
+> } else if ( test_expression3) {
+>
+> statement3
+>
+> } else {
+>
+> statement4
+>
+> }
+
+```{r}
+x <- 0
+if (x < 0) {
+print("Negative number")
+} else if (x > 0) {
+print("Positive number")
+} else
+print("Zero")
+```
+
+### for 반복문
+
+> values <- c(1,7,5,3,9) 
+>
+> for(id in 1:5){  
+>
+> print(values[id]) 
+>
+> } 
+
+### if와 for문을 이용한 예제
+
+Q1. if와 for를 이용하여 50부터 100까지 6의 배수의 합을 구하여라. 
+```{r}
+sum=0
+for(i in 50:100){
+if(i %% 6==0) sum=sum+i
+}
+print(sum)
+```
+
+Q2. 2,5,3,9,8,11,6에서 짝수의 갯 수를 if와 for 문으로 구하여라.
+```{r}
+x <- c(2,5,3,9,8,11,6)
+count <- 0
+for (val in x) {
+if(val %% 2 == 0)  count = count+1
+}
+print(count)
+```
+
+연습 : 10!을 계산하세요.
+
+```{r echo=FALSE} 
+x <- 1:10
+count <- 1
+for (val in x) {
+count = count*val
+}
+print(count)
+```
+
+## 데이터 불러오기(Import)
+
+### 1. Clipboard 
+
+데이터의 크기가 크지 않은 엑셀 자료가 있는 경우 자료를 저장하고 불러오는데 시간이 오래 걸릴 수 있다. 
+
+이 경우 `Ctrl+C` 를 이용하여 데이터를 Clipboard에 저장할 수 있다. 
+
+read.table("clipboard") 명령어를 이용하면 쉽게 자료를 불러 올 수 있다.
+
+이 때 자료의 첫행에 변수에 이름이 있으면 `header=T` 를 추가해야한다.
+
+```
+data <- read.table("clipboard", header=T)
+```
+
+### 2. Import Dataset
+
+Rstudio의 오른쪽 상단 패널에 `Environment`에 들어가면 `Import Dataset`이 있다. 
+
+여기를 클릭하면 **대화상자**를 이용하여 데이터를 쉽게 불러올 수 있다.
+
+하지만 파일명이 한글인 경우 오류가 발생한다. 
+
+이때는 한글파일명을 영문으로 변경하면 쉽게 불러 올 수 있다. 
+
+### 3. 함수를 활용
+
+실제 자료를 읽고 확인하는 방법입니다. 
+
+자료를 불러오기 전에 미리 작업폴더를 R에서 지정하면 그 다음부터 편하게 작업하실 수 있습니다.
+
+getwd()함수를 사용하면 현재 작업중인 폴더를 확인할 수 있습니다.
+
+```{r}
+getwd()
+```
+
+setwd()함수를 사용하면 원하는 위치로 작업폴더를 설정할 수 있어 자료를 쉽게 불러올 수 있습니다.
+
+```{r}
+setwd("F:/work/2022/1. 발표/교통안전공단/day1")
+getwd()
+```
+
+여기서 주의해야할 부분은 폴더구분을 `/` 또는 '\\'로 해야합니다.
+R은 유닉스 기반으로 구축되어 윈도우에서 사용하는 `\`를 위치로 인식하지 못하기 때문입니다.
+
+R의 데이터는 가급적이면 `csv`로 만들어서 불러오는게 편합니다. csv(comma seperated variables) 용량이 작고 어떤 소프트웨어에서도 쉽게 사용할 수 있기 때문입니다. 한글이 포함된 엑셀, SPSS, SAS파일를 R에서 불러올 경우 **encoding 에러**가 발생할 수 있으니 주의가 필요합니다.
+
+```{r}
+ex <- read.csv("diet.csv")
+head(ex)
+```
+
+엑셀파일은 ***readxl*** 팩키지 그리고 SAS나 SPSS는 ***foreign*** 혹은 ***haven*** 패키지를 이용하면 불러오고 저장할 수 있다.
+
+```{r}
+library(readxl)
+
+ex_excel <- read_excel("diet.xlsx")
+
+library(haven)
+# write_sas(ex, "example.sas7bdat")
+# write_sav(ex, "example.sav")
+
+# ex_sas <-  read_sas("example.sas7bdat")                 
+# ex.spss <- read_sav("example.sav")    
+```
+
+
+## 데이터 확인 (Tidy)
+
+데이터를 import 한 후에는 데이터가 잘 불러와졌는지 **꼭** 확인해야합니다.
+
+```{r}
+head(ex)
+tail(ex)
+head(ex,10)
+str(ex)
+names(ex)
+dim(ex)
+ncol(ex)
+nrow(ex)
+summary(ex)
+```
+
+데이터의 열에 해당하는 변수는 특수문자 `$`를 이용하여 확인할 수 있습니다. 
+
+혹은 `중괄호[]`를 이용해서도 확인하실 수 있습니다. 
+
+두개 이상의 변수를 한번에 선택하기 위해선 c()함수를 이용하면 됩니다.
+
+```{r}
+ex$gender
+ex[,2]
+ex[,c(1,4,6)]
+ex[1:5,c(1,4,6)]
+```
+
+### 결측치 확인
+
+결측히는 `is.na()`를 통해 확인할 수 있습니다.
+
+`summary()` 에서도 간략히 결측치의 수를 알려줍니다.
+
+결측치 처리가 중요한 이유는 결측치가 있는 경우 mean, sum, min과 같은 요약통계량을 직접 구할 수 없기 때문입니다.
+
+결측치를 제거하는데 유용한 함수는 `!is.na()`, `na.omit()`, `complete.cases()`가 있습니다.
+
+```{r}
+x <- c(1,2,3,NA,5,6,7)
+is.na(x)
+sum(is.na(x))
+summary(x)
+
+mean(x)
+median(x)
+
+y <- x[complete.cases(x)]
+y
+```
+물론 `na.rm=T`를 이용하면 결측치가 있어도 평균, 분산, 범위 등을 구할 수 있습니다.
+
+```{r}
+mean(x, na.rm=T)
+```
+
+* 결측치 대체하기
+    * 결측치 많을 경우 모두 제외하면 데이터 손실 큼
+    * 대안: 다른 값 채워넣기
+
+- 결측치 대체법(Imputation)
+    * 대표값(평균, 최빈값 등)으로 일괄 대체
+    * 통계분석 기법 적용, 예측값 추정해서 대체
+
+
+### 이상치(Outlier) - 정상범주에서 크게 벗어난 값
+
+- 이상치 포함시 분석 결과 왜곡
+
+- 결측 처리 후 제외하고 분석
+
+이상치 종류      |예                |해결 방법
+-----------------|------------------|---------
+존재할 수 없는 값|성별 변수에 3     |결측 처리
+극단적인 값      |몸무게 변수에 200 |정상범위 기준 정해서 결측 처리
+
+#### 이상치 제거하기 - 1. 존재할 수 없는 값
+
+- 논리적으로 존재할 수 없으므로 바로 결측 처리 후 분석시 제외
+
+```{r}
+outlier <- data.frame(sex = c(1, 2, 1, 3, 2, 1),
+                      score = c(5, 4, 3, 4, 2, 6))
+outlier
+```
+
+- 이상치 확인하기
+```{r}
+table(outlier$sex)
+table(outlier$score)
+```
+
+- 결측치 처리하기
+
+sex가 3이면 NA 할당
+```{r}
+outlier$sex <- ifelse(outlier$sex == 3, NA, outlier$sex)
+outlier
+```
+
+score가 1~5 아니면 NA 할당
+```{r}
+outlier$score <- ifelse(outlier$score > 5, NA, outlier$score)
+outlier
+```
+
+
+#### 이상치 제거하기 - 2. 극단적인 값
+- 정상범위 기준 정해서 벗어나면 결측 처리
+
+판단 기준   |예
+------------|---
+논리적 판단 |성인 몸무게 40kg~150kg 벗어나면 극단치
+통계적 판단 |상하위 0.3% 극단치 또는 상자그림 1.5 IQR 벗어나면 극단치
+
+- 상자그림으로 극단치 기준 정해서 제거하기
+
+```{r}
+mpg <- as.data.frame(ggplot2::mpg)
+boxplot(mpg$hwy)
+```
+
+![](img/07_02.png)
+
+![](img/07_01.png)
+
+
+상자 그림          |값                   |설명
+------------------ |---------------------|---
+상자 아래 세로 점선|아래수염             |하위 0~25% 내에 해당하는 값
+상자 밑면          |1사분위수(Q1)        |하위 25% 위치 값
+상자 내 굵은 선    |2사분위수(Q2)        |하위 50% 위치 값(중앙값)
+상자 윗면          |3사분위수(Q3)        |하위 75% 위치 값
+상자 위 세로 점선  |윗수염               |하위 75~100% 내에 해당하는 값
+상자 밖 가로선     |극단치 경계          |Q1, Q3 밖 1.5 IQR 내 최대값
+상자 밖 점 표식    |극단치               |Q1, Q3 밖 1.5 IQR을 벗어난 값
+
+boxplot결과를 객체로 저장 후 `$out`을 추가하면 쉽게 이상치를 찾을 수 있다.
+```{r}
+out <- boxplot(mpg$hwy)
+out$out
+```
+
+ifelse 함수를 활용하면 이상치를 제외하여 데이터를 생성할 수 있다. 
+
+*boxplot에 대한 기타 옵션* : 수업시간 안내내
