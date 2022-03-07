@@ -10,6 +10,6 @@
 >
 > 3일차 : ITS, 표준노드링크 시각화 및 교통데이터 실습
 
-![](https://nrms.kisti.re.kr/bitextimages/TRKO201700004334/TRKO201700004334_64_image_1.png)
+[](https://nrms.kisti.re.kr/bitextimages/TRKO201700004334/TRKO201700004334_64_image_1.png)
 
-![](https://www.google.com/url?sa=i&url=https%3A%2F%2Fblog.daum.net%2F0186042076%2F42&psig=AOvVaw1E5R-yXjerlqN9keH9k_et&ust=1646697826129000&source=images&cd=vfe&ved=0CAsQjRxqFwoTCIirkNLZsvYCFQAAAAAdAAAAABAD)
+[](https://www.google.com/url?sa=i&url=https%3A%2F%2Fblog.daum.net%2F0186042076%2F42&psig=AOvVaw1E5R-yXjerlqN9keH9k_et&ust=1646697826129000&source=images&cd=vfe&ved=0CAsQjRxqFwoTCIirkNLZsvYCFQAAAAAdAAAAABAD)
